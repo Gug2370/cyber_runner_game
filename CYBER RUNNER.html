@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CYBER CORE: CLICKER</title>
+    <style>
+        /* RESET & BASE STYLES */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            background-color: #050515;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+            background: radial-gradient(circle at center, #0c0f30 0%, #050515 100%);
+        }
+
+        /* HEADER UI */
+        header {
+            text-align: center;
+            padding: 20px;
+            border-bottom: 2px solid #00f0ff;
+            background: rgba(12, 15, 48, 0.5);
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.15);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: #00f0ff;
+            text-shadow: 0 0 10px #00f0ff;
+            letter-spacing: 4px;
+            margin-bottom: 5px;
+        }
+
+        .stats-container {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 10px;
+        }
+
+        .stat-box {
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+        }
+
+        .stat-value {
+            font-weight: bold;
+            color: #ff007f;
+            text-shadow: 0 0 8px #ff007f;
+        }
+
+        /* MAIN GAME LAYOUT */
+        main {
+            display: flex;
+            flex: 1;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            gap: 20px;
+            align-items: center;
+        }
+
+        /* LEFT SIDE: THE CLICKER */
+        .clicker-section {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .core-button {
+            width: 250px;
+            height: 250px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #00f0ff 0%, #7000ff 70%, #050515 100%);
+            border: 4px solid #00f0ff;
+            cursor: pointer;
+            outline: none;
+            box-shadow: 0 0 30px #7000ff, inset 0 0 20px #00f0ff;
+            transition: transform 0.05s ease, box-shadow 0.1s ease;
+            position: relative;
+        }
+
+        .core-button:active {
+            transform: scale(0.95);
+            box-shadow: 0 0 50px #00f0ff, inset 0 0 30px #7000ff;
+        }
+
+        /* RIGHT SIDE: UPGRADES SHOP */
+        .shop-section {
+            width: 400px;
+            background: rgba(10, 10, 30, 0.8);
+            border: 2px solid #7000ff;
+            border-radius: 12px;
+            padding: 20px;
+            height: 80%;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            box-shadow: 0 0 20px rgba(112, 0, 255, 0.2);
+        }
+
+        .shop-title {
+            color: #00f0ff;
+            text-shadow: 0 0 5px #00f0ff;
+            font-size: 1.5rem;
+            border-bottom: 1px solid rgba(0, 240, 255, 0.3);
+            padding-bottom: 10px;
+            text-align: center;
+        }
+
+        .upgrade-btn {
+            background: linear-gradient(90deg, #100b35 0%, #1a0f4c 100%);
+            border: 1px solid #7000ff;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+
+        .upgrade-btn:hover:not(:disabled) {
+            background: linear-gradient(90deg, #1e125c 0%, #29157a 100%);
+            border-color: #00f0ff;
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+        }
+
+        .upgrade-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            border-color: #333;
+        }
+
+        .upgrade-info {
+            text-align: left;
+        }
+
+        .upgrade-name {
+            font-weight: bold;
+            color: #00f0ff;
+            margin-bottom: 2px;
+        }
+
+        .upgrade-cost {
+            font-size: 0.85rem;
+            color: #ff007f;
+        }
+
+        .upgrade-count {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* FLOATING TEXT ANIMATION */
+        .floating-text {
+            position: absolute;
+            color: #00f0ff;
+            font-weight: bold;
+            font-size: 1.5rem;
+            pointer-events: none;
+            text-shadow: 0 0 8px #00f0ff;
+            animation: floatUp 0.8s ease-out forwards;
+        }
+
+        @keyframes floatUp {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-100px) scale(0.8);
+            }
+        }
+
+        /* FOOTER */
+        footer {
+            text-align: center;
+            padding: 15px;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.4);
+            border-top: 1px solid rgba(112, 0, 255, 0.2);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>CYBER CORE // PROTOCOL</h1>
+        <div class="stats-container">
+            <div class="stat-box">DATA CREDITS: <span id="balance" class="stat-value">0</span></div>
+            <div class="stat-box">SECURE RATE: <span id="cps" class="stat-value">0</span>/sec</div>
+        </div>
+    </header>
+
+    <main>
+        <!-- CLICKER TARGET -->
+        <div class="clicker-section" id="clickerZone">
+            <button class="core-button" id="coreBtn" aria-label="Tap Cyber Core"></button>
+        </div>
+
+        <!-- UPGRADES SHOP -->
+        <div class="shop-section">
+            <div class="shop-title">SYSTEM UPGRADES</div>
+            
+            <button class="upgrade-btn" id="upg-miner" disabled>
+                <div class="upgrade-info">
+                    <div class="upgrade-name">Sub-Routine Miner</div>
+                    <div class="upgrade-cost">Cost: <span id="cost-miner">15</span> CR</div>
+                </div>
+                <div class="upgrade-count" id="count-miner">0</div>
+            </button>
+
+            <button class="upgrade-btn" id="upg-proxy" disabled>
+                <div class="upgrade-info">
+                    <div class="upgrade-name">AI Proxy Node</div>
+                    <div class="upgrade-cost">Cost: <span id="cost-proxy">100</span> CR</div>
+                </div>
+                <div class="upgrade-count" id="count-proxy">0</div>
+            </button>
+
+            <button class="upgrade-btn" id="upg-quantum" disabled>
+                <div class="upgrade-info">
+                    <div class="upgrade-name">Quantum Grid Rig</div>
+                    <div class="upgrade-cost">Cost: <span id="cost-quantum">1100</span> CR</div>
+                </div>
+                <div class="upgrade-count" id="count-quantum">0</div>
+            </button>
+        </div>
+    </main>
+
+    <footer>
+        CORE ARCHITECTURE V1.0.0 // AUTOMATIC AUTO-SAVE ENABLED
+    </footer>
+
+    <script>
+        /* GAME STATE */
+        const state = {
+            credits: 0,
+            creditsPerSecond: 0,
+            clickValue: 1,
+            upgrades: {
+                miner: { count: 0, baseCost: 15, cost: 15, cpsValue: 0.1 },
+                proxy: { count: 0, baseCost: 100, cost: 100, cpsValue: 1 },
+                quantum: { count: 0, baseCost: 1100, cost: 1100, cpsValue: 8 }
+            }
+        };
+
+        /* DOM ELEMENTS */
+        const coreBtn = document.getElementById('coreBtn');
+        const clickerZone = document.getElementById('clickerZone');
+        const balanceDisplay = document.getElementById('balance');
+        const cpsDisplay = document.getElementById('cps');
+
+        const upgradeElements = {
+            miner: {
+                button: document.getElementById('upg-miner'),
+                cost: document.getElementById('cost-miner'),
+                count: document.getElementById('count-miner')
+            },
+            proxy: {
+                button: document.getElementById('upg-proxy'),
+                cost: document.getElementById('cost-proxy'),
+                count: document.getElementById('count-proxy')
+            },
+            quantum: {
+                button: document.getElementById('upg-quantum'),
+                cost: document.getElementById('cost-quantum'),
+                count: document.getElementById('count-quantum')
+            }
+        };
+
+        /* ENGINE LOGIC */
+
+        // Update Text and Shop state on screen
+        function updateUI() {
+            balanceDisplay.innerText = Math.floor(state.credits).toLocaleString();
+            cpsDisplay.innerText = state.creditsPerSecond.toFixed(1);
+
+            // Check affordability of upgrades
+            for (const key in state.upgrades) {
+                const item = state.upgrades[key];
+                const element = upgradeElements[key];
+                
+                element.cost.innerText = Math.ceil(item.cost);
+                element.count.innerText = item.count;
+
+                if (state.credits >= item.cost) {
+                    element.button.removeAttribute('disabled');
+                } else {
+                    element.button.setAttribute('disabled', 'true');
+                }
+            }
+        }
+
+        // Calculate global production speed
+        function calculateCPS() {
+            let totalCPS = 0;
+            for (const key in state.upgrades) {
+                const item = state.upgrades[key];
+                totalCPS += item.count * item.cpsValue;
+            }
+            state.creditsPerSecond = totalCPS;
+        }
+
+        // Visual click floating numbers
+        function spawnFloatingText(e) {
+            const rect = coreBtn.getBoundingClientRect();
+            // Fallback if triggered by enter/space keys instead of pointer mouse
+            const x = e.clientX ? e.clientX : rect.left + rect.width / 2;
+            const y = e.clientY ? e.clientY : rect.top + rect.height / 2;
+
+            const text = document.createElement('div');
+            text.className = 'floating-text';
+            text.innerText = `+${state.clickValue}`;
+            text.style.left = `${x - 15}px`;
+            text.style.top = `${y - 25}px`;
+
+            document.body.appendChild(text);
+
+            // Remove node after animation cycle finishes
+            setTimeout(() => {
+                text.remove();
+            }, 800);
+        }
+
+        /* EVENT LISTENERS */
+
+        // Core Manual Clicks
+        coreBtn.addEventListener('click', (e) => {
+            state.credits += state.clickValue;
+            spawnFloatingText(e);
+            updateUI();
+        });
+
+        // Upgrade Purchases Mapping
+        function setupShop() {
+            for (const key in state.upgrades) {
+                upgradeElements[key].button.addEventListener('click', () => {
+                    const item = state.upgrades[key];
+                    if (state.credits >= item.cost) {
+                        state.credits -= item.cost;
+                        item.count++;
+                        // Increase cost scaling factor exponentially (15% increase per level)
+                        item.cost = item.baseCost * Math.pow(1.15, item.count);
+                        
+                        calculateCPS();
+                        updateUI();
+                    }
+                });
+            }
+        }
+
+        /* LOOPS */
+
+        // Main game interval loop tracking automation (runs at 10 ticks per second for smooth accuracy)
+        setInterval(() => {
+            if (state.creditsPerSecond > 0) {
+                state.credits += (state.creditsPerSecond / 10);
+                updateUI();
+            }
+        }, 100);
+
+        // Initialization
+        setupShop();
+        updateUI();
+    </script>
+</body>
+</html>
